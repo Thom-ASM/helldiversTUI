@@ -10,7 +10,21 @@ import (
 	"unsafe"
 
 	tea "github.com/charmbracelet/bubbletea"
+	"github.com/charmbracelet/lipgloss"
 )
+
+// styles
+
+var TerminidYellow = lipgloss.Color("#f5cb42")
+var AutomatonRed = lipgloss.Color("#b80f00")
+var HumanBlue = lipgloss.Color("#008ab8")
+
+var BaseText = lipgloss.NewStyle().Width(25).Foreground(TerminidYellow).Align(lipgloss.Left)
+var TerminidText = BaseText.Copy().Foreground(TerminidYellow)
+var AutomatonText = BaseText.Copy().Foreground(AutomatonRed)
+var HumanText = BaseText.Copy().Foreground(HumanBlue)
+
+var InfoPanel = lipgloss.NewStyle().Width(50).MarginLeft(50).Background(TerminidYellow)
 
 var factions [4]string
 
@@ -24,13 +38,14 @@ type Planet struct {
 
 type SinglePlanet struct {
 	Health           int
-	Liberation       int
+	Liberation       float32
 	Players          int
 	Regen_per_second int
 }
 
 type State struct {
 	AllPlanets       []Planet
+	FilteredPlanets  []Planet
 	SelectedIdx      int
 	FactionFilterIdx int
 	ActivePlanet     SinglePlanet
@@ -54,36 +69,35 @@ func (m State) Init() tea.Cmd {
 }
 
 func (m State) View() string {
-
 	activeFaction := factions[m.FactionFilterIdx%4]
+
 	// The header
-	s := fmt.Sprintf("Planets (%s)\n\n", activeFaction)
-
-	planetsToRender := m.AllPlanets
-	if activeFaction != "All" {
-		planetsToRender = make([]Planet, 0)
-		for _, planet := range m.AllPlanets {
-			if planet.Initial_owner == activeFaction {
-				planetsToRender = append(planetsToRender, planet)
-			}
-		}
-
-	}
+	s := fmt.Sprintf("Planets (%s)\n", activeFaction)
 
 	// Iterate over our choices
-	for idx, planet := range planetsToRender {
+	for idx, planet := range m.FilteredPlanets {
 
-		selected := ""
+		selected := " "
 		if idx == m.SelectedIdx {
-			selected = "X"
+			selected = ">"
 		}
 
-		// Render the row
-		s += fmt.Sprintf("%s %s\n", planet.Name, selected)
+		text := fmt.Sprintf("%s %s\n", selected, planet.Name)
+
+		switch planet.Initial_owner {
+
+		case "Humans":
+			s += HumanText.Render(text)
+		case "Terminids":
+			s += TerminidText.Render(text)
+		case "Automaton":
+			s += AutomatonText.Render(text)
+		}
+
 	}
 
 	if unsafe.Sizeof(m.ActivePlanet) != 0 {
-		s += fmt.Sprintf(" \n\n%d %% liberated ", m.ActivePlanet.Liberation)
+		s += fmt.Sprintf(" \n\n%f %% liberated ", m.ActivePlanet.Liberation)
 	}
 
 	return s
@@ -116,16 +130,31 @@ func (m State) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				m.SelectedIdx--
 			}
 		case "down":
-			if m.SelectedIdx < len(m.AllPlanets)-1 {
+			if m.SelectedIdx < len(m.FilteredPlanets)-1 {
 				m.SelectedIdx++
 			}
 
 		case "enter":
 
-			return m, fetchPlanetInfo(m.AllPlanets[m.SelectedIdx].Index)
+			return m, fetchPlanetInfo(m.FilteredPlanets[m.SelectedIdx].Index)
 
 		case "tab":
 			m.FactionFilterIdx++
+
+			activeFaction := factions[m.FactionFilterIdx%4]
+			activePlanets := m.AllPlanets
+
+			if activeFaction != "All" {
+				activePlanets = make([]Planet, 0)
+				for _, planet := range m.AllPlanets {
+					if planet.Initial_owner == activeFaction {
+						activePlanets = append(activePlanets, planet)
+					}
+				}
+
+			}
+
+			m.FilteredPlanets = activePlanets
 			m.SelectedIdx = 0
 		}
 
@@ -154,8 +183,15 @@ func fetchPlanetInfo(id int) tea.Cmd {
 
 	return func() tea.Msg {
 		client := &http.Client{Timeout: 10 * time.Second}
-		res := makeHttpRequest[SinglePlanet](client, fmt.Sprintf("https://helldivers-2.fly.dev/api/801/planets/%d/status", 196))
+		res := makeHttpRequest[SinglePlanet](client, fmt.Sprintf("https://helldivers-2.fly.dev/api/801/planets/%d/status", id))
 
+		f, err := tea.LogToFile("debug.log", "debug")
+		if err != nil {
+			fmt.Println("fatal:", err)
+			os.Exit(1)
+		}
+		f.WriteString(fmt.Sprintf("%d,%d", id, res.Health))
+		defer f.Close()
 		return SinglePlanetMsg(res)
 	}
 
