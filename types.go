@@ -21,6 +21,7 @@ type State struct {
 	SelectedIdx      int
 	FactionFilterIdx int
 	ActivePlanet     SinglePlanet
+	PaginationIdx    int
 }
 
 type AllPlanetsMsg []Planet
@@ -33,5 +34,6 @@ func initialModel() State {
 		SelectedIdx:      260,
 		FactionFilterIdx: 0,
 		ActivePlanet:     SinglePlanet{},
+		PaginationIdx:    0,
 	}
 }
