@@ -1,71 +1,20 @@
 package main
 
 import (
-	"encoding/json"
 	"fmt"
-	"io"
 	"net/http"
 	"os"
 	"time"
 	"unsafe"
 
 	tea "github.com/charmbracelet/bubbletea"
-	"github.com/charmbracelet/lipgloss"
 )
 
-// styles
-
-var TerminidYellow = lipgloss.Color("#f5cb42")
-var AutomatonRed = lipgloss.Color("#b80f00")
-var HumanBlue = lipgloss.Color("#008ab8")
-
-var BaseText = lipgloss.NewStyle().Width(25).Foreground(TerminidYellow).Align(lipgloss.Left)
-var TerminidText = BaseText.Copy().Foreground(TerminidYellow)
-var AutomatonText = BaseText.Copy().Foreground(AutomatonRed)
-var HumanText = BaseText.Copy().Foreground(HumanBlue)
-
-var InfoPanel = lipgloss.NewStyle().Width(50).MarginLeft(50).Background(TerminidYellow)
-
+var client = &http.Client{Timeout: 10 * time.Second}
 var factions [4]string
 
-type Planet struct {
-	Name          string
-	Hash          int
-	Index         int
-	Initial_owner string
-	Max_health    int
-}
-
-type SinglePlanet struct {
-	Health           int
-	Liberation       float32
-	Players          int
-	Regen_per_second int
-}
-
-type State struct {
-	AllPlanets       []Planet
-	FilteredPlanets  []Planet
-	SelectedIdx      int
-	FactionFilterIdx int
-	ActivePlanet     SinglePlanet
-}
-
-type AllPlanetsMsg []Planet
-
-type SinglePlanetMsg SinglePlanet
-
-func initialModel() State {
-	return State{
-		AllPlanets:       make([]Planet, 0),
-		SelectedIdx:      260,
-		FactionFilterIdx: 0,
-		ActivePlanet:     SinglePlanet{},
-	}
-}
-
 func (m State) Init() tea.Cmd {
-	return fetchAllPlanets
+	return fetchAllPlanets_msg
 }
 
 func (m State) View() string {
@@ -110,13 +59,7 @@ func (m State) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.AllPlanets = msg
 
 	case SinglePlanetMsg:
-
-		m.ActivePlanet = SinglePlanet{
-			Health:           msg.Health,
-			Liberation:       msg.Liberation,
-			Players:          msg.Players,
-			Regen_per_second: msg.Regen_per_second,
-		}
+		m.ActivePlanet = SinglePlanet(msg)
 
 	case tea.KeyMsg:
 
@@ -170,52 +113,4 @@ func main() {
 	if _, err := program.Run(); err != nil {
 		os.Exit(1)
 	}
-}
-
-func fetchAllPlanets() tea.Msg {
-
-	client := &http.Client{Timeout: 10 * time.Second}
-	res := makeHttpRequest[[]Planet](client, "https://helldivers-2.fly.dev/api/801/planets")
-	return AllPlanetsMsg(res)
-}
-
-func fetchPlanetInfo(id int) tea.Cmd {
-
-	return func() tea.Msg {
-		client := &http.Client{Timeout: 10 * time.Second}
-		res := makeHttpRequest[SinglePlanet](client, fmt.Sprintf("https://helldivers-2.fly.dev/api/801/planets/%d/status", id))
-
-		f, err := tea.LogToFile("debug.log", "debug")
-		if err != nil {
-			fmt.Println("fatal:", err)
-			os.Exit(1)
-		}
-		f.WriteString(fmt.Sprintf("%d,%d", id, res.Health))
-		defer f.Close()
-		return SinglePlanetMsg(res)
-	}
-
-}
-
-func makeHttpRequest[T any](httpClient *http.Client, url string) T {
-	res, err := httpClient.Get(url)
-
-	if err != nil {
-
-		fmt.Println(err)
-	}
-	defer res.Body.Close()
-
-	body, err := io.ReadAll(res.Body)
-
-	if err != nil {
-		fmt.Println(err)
-	}
-
-	var AllPlanets T
-
-	json.Unmarshal(body, &AllPlanets)
-
-	return AllPlanets
-
 }
