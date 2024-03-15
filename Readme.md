@@ -2,9 +2,8 @@
 
 
 ## IN PROGRESS
-Wip Image
 
-![WiP image](./assets/list.PNG)
+![WiP image](./assets/demo.gif)
 
 
 

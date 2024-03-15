@@ -6,7 +6,7 @@ var TerminidYellow = lipgloss.Color("#f5cb42")
 var AutomatonRed = lipgloss.Color("#b80f00")
 var HumanBlue = lipgloss.Color("#008ab8")
 
-var BaseText = lipgloss.NewStyle().Width(25).Foreground(TerminidYellow).Align(lipgloss.Left)
+var BaseText = lipgloss.NewStyle().Width(30).Foreground(TerminidYellow).Align(lipgloss.Left)
 var TerminidText = BaseText.Copy().Foreground(TerminidYellow)
 var AutomatonText = BaseText.Copy().Foreground(AutomatonRed)
 var HumanText = BaseText.Copy().Foreground(HumanBlue)
