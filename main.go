@@ -62,12 +62,16 @@ func (m State) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 
 		case "left":
-			if m.PaginationIdx == 0 {
 
+			maxPages := len(m.FilteredPlanets) / height
+
+			if m.PaginationIdx == 0 {
 				m.PaginationIdx = len(m.FilteredPlanets) / height
 			} else {
 				m.PaginationIdx--
 			}
+
+			m.SelectedIdx = m.PaginationIdx % (maxPages + 1) * height
 
 		case "right":
 			next := m.PaginationIdx + 1
