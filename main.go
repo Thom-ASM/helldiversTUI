@@ -39,6 +39,8 @@ func (m State) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	case AllPlanetsMsg:
 		m.AllPlanets = msg
+		m.FilteredPlanets = msg
+		m.SelectedIdx = 0
 
 	case SinglePlanetMsg:
 
