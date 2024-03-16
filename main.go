@@ -26,7 +26,7 @@ func (m State) View() string {
 
 	s += planetlist(m.FilteredPlanets, 20, m.PaginationIdx, m.SelectedIdx)
 
-	s += progressBar(m.ActivePlanet.Liberation)
+	s += progressBar(m.ActivePlanet.Liberation, m.ActivePlanet.Owner)
 
 	s += fmt.Sprintf("%f %% liberated \t %d helldivers liberating planet", m.ActivePlanet.Liberation, m.ActivePlanet.Players)
 

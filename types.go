@@ -13,6 +13,7 @@ type SinglePlanet struct {
 	Liberation       float32
 	Players          int
 	Regen_per_second int
+	Owner            string
 }
 
 type State struct {

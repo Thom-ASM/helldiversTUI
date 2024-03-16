@@ -6,7 +6,7 @@ import (
 
 var progressBarChar = "█"
 
-func progressBar(progress float32) string {
+func progressBar(progress float32, faction string) string {
 
 	baseString := ""
 
@@ -16,7 +16,7 @@ func progressBar(progress float32) string {
 		initialBarSize = int(float32(width) / (100.0 / progress))
 		baseString += HumanText.Render(strings.Repeat(progressBarChar, initialBarSize))
 	}
-	baseString += TerminidText.Render(strings.Repeat(progressBarChar, width-initialBarSize))
+	baseString += applyFactionStyle(strings.Repeat(progressBarChar, width-initialBarSize), faction)
 
 	return baseString + "\n"
 
