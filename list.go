@@ -10,6 +10,8 @@ func planetlist(planets []Planet, height int, paginationIdx int, selectedIndex i
 
 	finalString := ""
 
+	listCount := 0
+
 	for idx, planet := range planets {
 
 		currentPage := int(math.Floor(float64(idx / height)))
@@ -19,7 +21,7 @@ func planetlist(planets []Planet, height int, paginationIdx int, selectedIndex i
 		}
 
 		if currentPage == paginationIdx {
-
+			listCount++
 			selected := " "
 			if idx == selectedIndex {
 				selected = ">"
@@ -32,8 +34,8 @@ func planetlist(planets []Planet, height int, paginationIdx int, selectedIndex i
 	}
 
 	//pad bottom
-	if len(planets) < height {
-		finalString += strings.Repeat("\n", height-len(planets))
+	if listCount < height {
+		finalString += strings.Repeat("\n", height-listCount)
 	}
 
 	finalString += fmt.Sprintf("Page: %d/%d\n", paginationIdx+1, (len(planets)/height)+1)

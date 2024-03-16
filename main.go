@@ -53,11 +53,21 @@ func (m State) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return m, tea.Quit
 
 		case "up":
-			if m.SelectedIdx > 0 {
+			top := m.PaginationIdx * height
+			if m.SelectedIdx > top {
 				m.SelectedIdx--
 			}
 		case "down":
-			if m.SelectedIdx < len(m.FilteredPlanets)-1 {
+			remainder := len(m.FilteredPlanets) - ((m.PaginationIdx) * height)
+
+			bottom := (m.PaginationIdx * height)
+			if remainder < height {
+				bottom += remainder
+			} else {
+				bottom += height
+			}
+
+			if m.SelectedIdx < bottom-1 {
 				m.SelectedIdx++
 			}
 
