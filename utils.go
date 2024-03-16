@@ -48,3 +48,16 @@ func fetchPlanetInfo(id int) tea.Cmd {
 		return fetchSinglePlanet_msg(id)
 	}
 }
+
+func applyFactionStyle(str string, faction string) string {
+
+	switch faction {
+	case "Humans":
+		return HumanText.Render(str)
+	case "Terminids":
+		return TerminidText.Render(str)
+	case "Automaton":
+		return AutomatonText.Render(str)
+	}
+	return str
+}

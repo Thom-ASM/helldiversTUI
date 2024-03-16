@@ -5,7 +5,6 @@ import (
 	"net/http"
 	"os"
 	"time"
-	"unsafe"
 
 	tea "github.com/charmbracelet/bubbletea"
 )
@@ -14,6 +13,7 @@ var client = &http.Client{Timeout: 10 * time.Second}
 var factions [4]string
 
 var height = 20
+var width = 20
 
 func (m State) Init() tea.Cmd {
 	return fetchAllPlanets_msg
@@ -22,14 +22,13 @@ func (m State) Init() tea.Cmd {
 func (m State) View() string {
 	activeFaction := factions[m.FactionFilterIdx%4]
 
-	// The header
-	s := fmt.Sprintf("Planets (%s)\n", activeFaction)
+	s := fmt.Sprintf("Planets (%s)\n", applyFactionStyle(activeFaction, activeFaction))
 
 	s += planetlist(m.FilteredPlanets, 20, m.PaginationIdx, m.SelectedIdx)
 
-	if unsafe.Sizeof(m.ActivePlanet) != 0 {
-		s += fmt.Sprintf(" \n\n%f %% liberated ", m.ActivePlanet.Liberation)
-	}
+	s += progressBar(m.ActivePlanet.Liberation)
+
+	s += fmt.Sprintf("%f %% liberated \t %d helldivers liberating planet", m.ActivePlanet.Liberation, m.ActivePlanet.Players)
 
 	return s
 }

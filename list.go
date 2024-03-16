@@ -25,17 +25,7 @@ func planetlist(planets []Planet, height int, paginationIdx int, selectedIndex i
 				selected = ">"
 			}
 
-			text := fmt.Sprintf("%s %s", selected, planet.Name)
-
-			switch planet.Initial_owner {
-
-			case "Humans":
-				finalString += fmt.Sprintf("%s\n", HumanText.Render(text))
-			case "Terminids":
-				finalString += fmt.Sprintf("%s\n", TerminidText.Render(text))
-			case "Automaton":
-				finalString += fmt.Sprintf("%s\n", AutomatonText.Render(text))
-			}
+			finalString += applyFactionStyle(fmt.Sprintf("%s %s", selected, planet.Name), planet.Initial_owner) + "\n"
 
 		}
 
